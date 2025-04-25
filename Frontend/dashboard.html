@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telegram Mass DM Dashboard</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            touch-action: none;
+        }
+
+        html, body {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .main-content {
+            background-color: #121212;
+            border-radius: 24px;
+            padding: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header-icon {
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-icon {
+            margin-bottom: 1rem;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .card-purple { background-color: rgba(88, 28, 135, 0.2); }
+        .card-green { background-color: rgba(6, 78, 59, 0.2); }
+        .card-burgundy { background-color: rgba(136, 19, 55, 0.2); }
+
+        .bot-status {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .bot-status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .bot-status-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .status-badge {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge.running {
+            background-color: #22c55e;
+            color: #ffffff;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.stopped {
+            background-color: #ef4444;
+            color: #ffffff;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .status-icons {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            color: #22c55e;
+        }
+
+        .bell-container {
+            position: absolute;
+            top: -35px;
+            right: 10px;
+        }
+
+        .bell-icon {
+            color: #facc15;
+            animation: bell-ring 2s infinite;
+        }
+
+        @keyframes bell-ring {
+            0%, 100% { transform: rotate(0); }
+            10%, 30%, 50%, 70%, 90% { transform: rotate(10deg); }
+            20%, 40%, 60%, 80% { transform: rotate(-10deg); }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 120px;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-stop {
+            background-color: #ef4444;
+        }
+
+        .btn-stop:not(:disabled):hover {
+            background-color: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .btn-start {
+            background-color: #22c55e;
+        }
+
+        .btn-start:not(:disabled):hover {
+            background-color: #16a34a;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .bell-icon {
+            animation: pulse 2s infinite;
+        }
+
+        .statistics {
+            margin-top: 2rem;
+        }
+
+        .statistics h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .statistic {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .statistic-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .statistic-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 0.5rem;
+        }
+
+        .statistic-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .statistic-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .statistic-description {
+            color: #a0a0a0;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .cards, .statistics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bot-status-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="header">
+                <h1>
+                    <i data-lucide="send" class="header-icon" style="color: white;"></i>
+                    Telegram Mass DM
+                </h1>
+                <p>Efficiently manage and automate your Telegram direct messaging campaigns. Reach your audience at scale with personalized messages.</p>
+            </div>
+            <div class="cards">
+                <div class="card card-purple">
+                    <i data-lucide="users" class="card-icon"></i>
+                    <h2>Audience Targeting</h2>
+                    <p>Segment your audience and create targeted messaging campaigns for maximum engagement.</p>
+                </div>
+                <div class="card card-green">
+                    <i data-lucide="settings" class="card-icon"></i>
+                    <h2>Campaign Management</h2>
+                    <p>Set up, schedule, and monitor multiple DM campaigns from a centralized dashboard.</p>
+                </div>
+                <div class="card card-burgundy">
+                    <i data-lucide="bar-chart" class="card-icon"></i>
+                    <h2>Analytics</h2>
+                    <p>Track message delivery, open rates, and engagement metrics to optimize your campaigns.</p>
+                </div>
+            </div>
+            <div class="bot-status">
+                <div class="bot-status-header">
+                    <h2>Mass DM Status</h2>
+                </div>
+                <div class="bot-status-content">
+                    <div class="status-indicator">
+                        <span id="statusBadge" class="status-badge stopped">Stopped</span>
+                    </div>
+                    <div class="button-group">
+                        <div class="bell-container">
+                            <i id="bellIcon" data-lucide="bell" class="bell-icon"></i>
+                        </div>
+                        <button id="stopBtn" class="btn btn-stop" disabled>
+                            <i data-lucide="square" style="color: white;"></i>
+                            Stop
+                        </button>
+                        <button id="startBtn" class="btn btn-start">
+                            <i data-lucide="play"></i>
+                            Start
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="statistics">
+                <h2>System Statistics</h2>
+                <div class="statistics-grid">
+                    <div class="statistic">
+                        <div class="statistic-header">
+                            <i data-lucide="cpu" class="statistic-icon"></i>
+                            <span class="statistic-title">CPU Usage</span>
+                        </div>
+                        <div id="cpuUsage" class="statistic-value">0%</div>
+                        <p class="statistic-description">Current CPU utilization</p>
+                    </div>
+                    <div class="statistic">
+                        <div class="statistic-header">
+                            <i data-lucide="database" class="statistic-icon"></i>
+                            <span class="statistic-title">Memory Usage</span>
+                        </div>
+                        <div id="memoryUsage" class="statistic-value">0 GB</div>
+                        <p class="statistic-description">Current memory consumption</p>
+                    </div>
+                    <div class="statistic">
+                        <div class="statistic-header">
+                            <i data-lucide="hard-drive" class="statistic-icon"></i>
+                            <span class="statistic-title">Disk Space</span>
+                        </div>
+                        <div id="diskSpace" class="statistic-value">0 GB</div>
+                        <p class="statistic-description">Available disk space</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+                e.preventDefault();
+            }
+        });
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        lucide.createIcons();
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusBadge = document.getElementById('statusBadge');
+        const bellIcon = document.getElementById('bellIcon');
+        function updateStatus(isRunning) {
+            startBtn.disabled = isRunning;
+            stopBtn.disabled = !isRunning;
+            statusBadge.textContent = isRunning ? 'Running' : 'Stopped';
+            statusBadge.classList.toggle('running', isRunning);
+            statusBadge.classList.toggle('stopped', !isRunning);
+            bellIcon.classList.toggle('shaking', isRunning);
+            lucide.createIcons();
+        }
+        
+        new QWebChannel(qt.webChannelTransport, function (channel) {
+            window.pybridge = channel.objects.pybridge;
+            
+            startBtn.addEventListener('click', () => {
+                updateStatus(true);
+                pybridge.startBot();
+            });
+            stopBtn.addEventListener('click', () => {
+                updateStatus(false);
+                pybridge.stopBot();
+            });
+
+            pybridge.updateSystemStats.connect(function(statsJson) {
+                const stats = JSON.parse(statsJson);
+                updateSystemStatsDisplay(stats);
+            });
+        });
+        
+        updateStatus(false);
+
+        function updateSystemStatsDisplay(data) {
+            document.getElementById('cpuUsage').textContent = data.metrics.cpu_usage.toFixed(1) + '%';
+            document.getElementById('memoryUsage').textContent = data.metrics.memory_usage.used;
+            document.getElementById('diskSpace').textContent = data.metrics.disk_space['C:\\'].free;
+        }
+    </script>
+</body>
+</html>

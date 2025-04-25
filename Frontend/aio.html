@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Telegram Account Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #000000;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 0.5rem; 
+            padding-top: 1rem; 
+            touch-action: none;
+        }
+
+        .select-none {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 42rem;
+            background: #18181B;
+            border: 1px solid #27272A;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #FFFFFF;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .button {
+            background: #10B981;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 42px;
+        }
+
+        .button:hover:not(:disabled) {
+            background: #059669;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-outline {
+            background: transparent;
+            border: 1px solid #3F3F46;
+            color: #A1A1AA;
+        }
+
+        .button-outline:hover:not(:disabled) {
+            background: #27272A;
+        }
+
+        .logs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .logs-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .logs-container {
+            background: #18181B;
+            border: 1px solid #3F3F46;
+            border-radius: 0.375rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+
+        .logs-content {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .log-entry {
+            display: grid;
+            grid-template-columns: auto auto 1fr;
+            gap: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25;
+            align-items: start;
+        }
+
+        .log-timestamp {
+            color: #71717A;
+            white-space: nowrap;
+        }
+
+        .log-level-INFO {
+            color: #3b82f6;
+            white-space: nowrap;
+        }
+
+        .log-level-SUCCESS {
+            color: #22c55e;
+            white-space: nowrap;
+        }
+
+        .log-level-ERROR {
+            color: #ef4444;
+            white-space: nowrap;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal {
+            background: #18181B;
+            border: 1px solid #3F3F46;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 28rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #FFFFFF;
+        }
+
+        .checkbox-container {
+            background: #18181B;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #3F3F46;
+        }
+
+        .checkbox {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #10B981;
+            border-radius: 0.25rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: #10B981;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .input {
+            width: 100%;
+            background: #18181B;
+            border: 1px solid #3F3F46;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #10B981;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .file-input-container {
+            background: #18181B;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #3F3F46;
+        }
+
+        .file-input {
+            width: 100%;
+            color: white;
+        }
+
+        .file-input::-webkit-file-upload-button {
+            background: #10B981;
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            margin-right: 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .file-input::-webkit-file-upload-button:hover {
+            background: #059669;
+        }
+
+        .preview-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.375rem;
+        }
+
+        .preview-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .preview-image:hover {
+            border-color: #10B981;
+            transform: scale(1.05);
+        }
+
+        .empty-logs {
+            color: #71717A;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .session-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .file-input-container:hover {
+            border-color: #10B981;
+        }
+
+        .modal-helper-text {
+            color: #71717A;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body class="select-none">
+    <div class="card">
+        <h1 class="card-title">Telegram Account Manager</h1>
+        
+        <div class="button-grid">
+            <button class="button" id="displayNameBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                Change Display Name
+            </button>
+            <button class="button" id="profilePicBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <path d="M21 15l-5-5L5 21"/>
+                </svg>
+                Change Profile Picture
+            </button>
+        </div>
+
+        <div>
+            <div class="logs-header">
+                <h3 class="logs-title">Operation Logs</h3>
+                <button class="button button-outline" id="clearLogsBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    Clear Logs
+                </button>
+            </div>
+            <div class="logs-container">
+                <div class="logs-content" id="logsContent">
+                    <div class="empty-logs">No operations logged yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="displayNameModal">
+        <div class="modal">
+            <h2 class="modal-title">Change Display Name</h2>
+            <div class="session-list" id="displayNameSessions"></div>
+            <input type="text" class="input" id="displayNameInput" placeholder="Enter new display name">
+            <button class="button" style="width: 100%;" id="confirmDisplayName">
+                Confirm
+            </button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop hidden" id="profilePicModal">
+        <div class="modal">
+            <h2 class="modal-title">Change Profile Picture</h2>
+            <div class="modal-helper-text">Select multiple images to cycle through them for different accounts, or select a single image to use for all accounts.</div>
+            <div class="session-list" id="profilePicSessions"></div>
+            <div class="file-input-container">
+                <input type="file" class="file-input" id="profilePicInput" accept="image/*" multiple>
+            </div>
+            <div class="preview-images" id="imagePreview"></div>
+            <button class="button" style="width: 100%;" id="confirmProfilePic">
+                Confirm
+            </button>
+        </div>
+    </div>
+
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        let bridge;
+        let isInitialized = false;
+
+        const state = {
+            loading: false,
+            displayNameLoading: false,
+            profilePicLoading: false,
+            sessions: []
+        };
+
+        function initBridge() {
+            return new Promise((resolve) => {
+                new QWebChannel(qt.webChannelTransport, function (channel) {
+                    bridge = channel.objects.bridge;
+                    resolve();
+                });
+            });
+        }
+
+        function formatTimestamp() {
+            const now = new Date();
+            const pad = (n) => n.toString().padStart(2, '0');
+            return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        }
+
+        async function handleModalOpen(type) {
+            const button = type === 'display' ? displayNameBtn : profilePicBtn;
+            const modal = type === 'display' ? displayNameModal : profilePicModal;
+            if (!button || !modal) return;
+
+            try {
+                ensureBridgeInitialized();
+                setButtonLoading(button, true);
+                addLog(`Opening ${type === 'display' ? 'display name' : 'profile picture'} change dialog...`, 'INFO');
+                await loadSessions(type === 'display' ? 'displayName' : 'profilePic');
+                modal.classList.remove('hidden');
+            } catch (error) {
+                addLog(error.message, 'ERROR');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+
+        function addLog(message, type = 'INFO') {
+            const logsContent = document.getElementById('logsContent');
+            if (!logsContent) return;
+
+            const emptyLogs = logsContent.querySelector('.empty-logs');
+            if (emptyLogs) {
+                logsContent.removeChild(emptyLogs);
+            }
+
+            const timestamp = formatTimestamp();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-timestamp">${timestamp}</span>
+                <span class="log-level-${type}">[${type}]</span>
+                <span>${message}</span>
+            `;
+            logsContent.insertBefore(logEntry, logsContent.firstChild);
+            logsContent.scrollTop = 0;
+        }
+
+        function clearLogs() {
+            const logsContent = document.getElementById('logsContent');
+            if (!logsContent) return;
+            logsContent.innerHTML = '<div class="empty-logs">No operations logged yet</div>';
+        }
+
+        function setButtonLoading(button, loading) {
+            if (!button) return;
+
+            if (loading) {
+                const originalContent = button.innerHTML;
+                const spinner = document.createElement('div');
+                spinner.className = 'spinner';
+                button.innerHTML = '';
+                button.appendChild(spinner);
+                button.appendChild(document.createTextNode(button.textContent));
+                button.setAttribute('data-original-content', originalContent);
+                button.disabled = true;
+            } else {
+                const originalContent = button.getAttribute('data-original-content');
+                if (originalContent) {
+                    button.innerHTML = originalContent;
+                    button.removeAttribute('data-original-content');
+                }
+                button.disabled = false;
+            }
+        }
+
+        async function loadSessions(modalId) {
+            const sessionList = document.getElementById(modalId + 'Sessions');
+            if (!sessionList) return;
+
+            sessionList.innerHTML = '<div class="checkbox-container">Loading sessions...</div>';
+            
+            try {
+                const sessionsJson = await bridge.get_sessions();
+                const sessions = JSON.parse(sessionsJson);
+                state.sessions = sessions;
+                
+                if (sessions.length === 0) {
+                    sessionList.innerHTML = '<div class="checkbox-container">No sessions found</div>';
+                    return;
+                }
+
+                sessionList.innerHTML = `
+                    <div class="checkbox-container">
+                        <div class="checkbox" data-id="all-sessions"></div>
+                        <label>Select All Sessions</label>
+                    </div>
+                `;
+
+                sessions.forEach(session => {
+                    sessionList.innerHTML += `
+                        <div class="checkbox-container">
+                            <div class="checkbox" data-id="${session.name}"></div>
+                            <label>${session.name}</label>
+                        </div>
+                    `;
+                });
+
+                setupCheckboxHandlers(modalId);
+                addLog(`Loaded ${sessions.length} sessions successfully`, 'SUCCESS');
+            } catch (error) {
+                sessionList.innerHTML = '<div class="checkbox-container error">Error loading sessions</div>';
+                addLog(`Error loading sessions: ${error}`, 'ERROR');
+            }
+        }
+
+        function ensureBridgeInitialized() {
+            if (!isInitialized) {
+                throw new Error('Bridge not initialized. Please wait and try again.');
+            }
+        }
+
+        async function handleAction(type) {
+            const modal = type === 'display' ? displayNameModal : profilePicModal;
+            const button = type === 'display' ? confirmDisplayName : confirmProfilePic;
+            if (!modal || !button) return;
+
+            const selectedSessions = Array.from(modal.querySelectorAll('.checkbox.checked'))
+                .map(cb => cb.dataset.id)
+                .filter(id => id !=='all-sessions');
+
+            if (selectedSessions.length === 0) {
+                addLog('No sessions selected', 'ERROR');
+                return;
+            }
+
+            setButtonLoading(button, true);
+
+            try {
+                if (type === 'display') {
+                    const newName = displayNameInput.value.trim();
+                    if (!newName) {
+                        addLog('Display name cannot be empty', 'ERROR');
+                        setButtonLoading(button, false);
+                        return;
+                    }
+                    const success = await bridge.change_name(JSON.stringify(selectedSessions), newName, "");
+                    if (success) {
+                        addLog('Display name change initiated', 'SUCCESS');
+                        modal.classList.add('hidden');
+                        displayNameInput.value = '';
+                    }
+                } else {
+                    const files = profilePicInput.files;
+                    if (files.length === 0) {
+                        addLog('No image files selected', 'ERROR');
+                        setButtonLoading(button, false);
+                        return;
+                    }
+
+                    const imagePromises = Array.from(files).map(file => {
+                        return new Promise((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = e => resolve(e.target.result);
+                            reader.readAsDataURL(file);
+                        });
+                    });
+
+                    const imageDataUrls = await Promise.all(imagePromises);
+                    
+                    if (imageDataUrls.length > 1) {
+                        addLog(`Processing ${imageDataUrls.length} images in cycle mode`, 'INFO');
+                    } else {
+                        addLog('Processing single image mode', 'INFO');
+                    }
+
+                    const success = await bridge.change_photo(JSON.stringify(selectedSessions), JSON.stringify(imageDataUrls));
+                    if (success) {
+                        addLog('Profile picture change initiated', 'SUCCESS');
+                        modal.classList.add('hidden');
+                        profilePicInput.value = '';
+                        document.getElementById('imagePreview').innerHTML = '';
+                    }
+                }
+            } catch (error) {
+                addLog(error.message, 'ERROR');
+            } finally {
+                setButtonLoading(button, false);
+            }
+        }
+
+        function setupCheckboxHandlers(modalId) {
+            const modal = document.getElementById(`${modalId}Modal`);
+            if (!modal) return;
+
+            const checkboxes = modal.querySelectorAll('.checkbox');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', () => {
+                    const id = checkbox.dataset.id;
+                    const isChecked = checkbox.classList.toggle('checked');
+
+                    if (id === 'all-sessions') {
+                        checkboxes.forEach(cb => {
+                            if (cb !== checkbox) {
+                                cb.classList.toggle('checked', isChecked);
+                            }
+                        });
+                    } else {
+                        const allSessionsCheckbox = modal.querySelector('.checkbox[data-id="all-sessions"]');
+                        const allChecked = Array.from(checkboxes)
+                            .filter(cb => cb !== allSessionsCheckbox)
+                            .every(cb => cb.classList.contains('checked'));
+                        allSessionsCheckbox.classList.toggle('checked', allChecked);
+                    }
+                });
+            });
+        }
+
+        function handleImagePreview(input) {
+            const preview = document.getElementById('imagePreview');
+            if (!preview || !input.files) return;
+
+            preview.innerHTML = '';
+            
+            const files = Array.from(input.files);
+            if (files.length > 1) {
+                addLog(`Selected ${files.length} images for cycling`, 'INFO');
+            }
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-image';
+                    img.title = `Image ${index + 1}`;
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const displayNameBtn = document.getElementById('displayNameBtn');
+            const profilePicBtn = document.getElementById('profilePicBtn');
+            const clearLogsBtn = document.getElementById('clearLogsBtn');
+            const confirmDisplayName = document.getElementById('confirmDisplayName');
+            const confirmProfilePic = document.getElementById('confirmProfilePic');
+            const profilePicInput = document.getElementById('profilePicInput');
+            const displayNameModal = document.getElementById('displayNameModal');
+            const profilePicModal = document.getElementById('profilePicModal');
+
+            if (displayNameBtn) {
+                displayNameBtn.addEventListener('click', () => handleModalOpen('display'));
+            }
+            if (profilePicBtn) {
+                profilePicBtn.addEventListener('click', () => handleModalOpen('profile'));
+            }
+            if (clearLogsBtn) {
+                clearLogsBtn.addEventListener('click', clearLogs);
+            }
+            if (confirmDisplayName) {
+                confirmDisplayName.addEventListener('click', () => handleAction('display'));
+            }
+            if (confirmProfilePic) {
+                confirmProfilePic.addEventListener('click', () => handleAction('profile'));
+            }
+            if (profilePicInput) {
+                profilePicInput.addEventListener('change', () => handleImagePreview(profilePicInput));
+            }
+
+            document.querySelectorAll('.modal-backdrop').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+
+            document.addEventListener('wheel', function(e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (e.scale !== 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            initBridge().then(() => {
+                isInitialized = true;
+                addLog('Telegram Account Manager initialized', 'INFO');
+            }).catch(error => {
+                addLog('Failed to initialize bridge: ' + error.message, 'ERROR');
+            });
+        });
+
+        function updateLog(message, type = 'INFO') {
+            addLog(message, type);
+        }
+    </script>
+</body>
+</html>

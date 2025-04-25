@@ -1,0 +1,27 @@
+{
+    "timestamp": "2025-04-25T21:47:28.544828",
+    "metrics": {
+        "cpu_usage": 21.9,
+        "memory_usage": {
+            "total": "15.21 GB",
+            "available": "3.95 GB",
+            "percent": 74.0,
+            "used": "11.26 GB"
+        },
+        "disk_space": {
+            "C:\\": {
+                "total": "452.98 GB",
+                "used": "161.28 GB",
+                "free": "291.70 GB",
+                "percent": 35.6
+            },
+            "D:\\": {
+                "total": "953.84 GB",
+                "used": "598.93 GB",
+                "free": "354.91 GB",
+                "percent": 62.8
+            }
+        },
+        "network_latency": 31.61
+    }
+}

@@ -1,0 +1,9 @@
+PyQt5
+PyQtWebEngine
+telethon
+qasync
+aiohttp
+psutil
+beautifulsoup4
+uvloop
+pyperclip

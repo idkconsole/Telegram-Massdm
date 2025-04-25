@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
+    <style>
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(150%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 2000;
+        }
+
+        .notification-popup.show {
+            transform: translateX(0);
+        }
+
+        .notification-popup i {
+            font-size: 20px;
+        }
+
+        .notification-popup .message {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000000;
+            color: #ffffff;
+            user-select: none;
+        }
+        .container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .help-center {
+            background-color: #1a1a1a;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 64rem;
+            width: 100%;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.5s, transform 0.5s;
+            user-select: none;
+        }
+        .help-center.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        h1 {
+            font-size: 2.25rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #f3f4f6;
+        }
+        .contact-methods {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .contact-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            background-color: #374151;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .contact-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .contact-button:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        .contact-button:hover::before {
+            opacity: 1;
+        }
+        .contact-button i {
+            font-size: 1.75rem;
+            transition: all 0.3s ease;
+        }
+        .contact-button:hover i {
+            transform: scale(1.2);
+        }
+        .faq-section {
+            margin-bottom: 2rem;
+        }
+        .faq-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #e5e7eb;
+        }
+        .search-container {
+            position: relative;
+            margin-bottom: 1rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            background-color: #374151;
+            color: #e5e7eb;
+            border: none;
+            border-radius: 9999px;
+            outline: none;
+        }
+        .search-input:focus {
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+        .clear-search {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .faq-item {
+            border-bottom: 1px solid #374151;
+            padding: 1rem 0;
+            transition: background-color 0.3s ease;
+        }
+        .faq-item:hover {
+            background-color: #2d3748;
+        }
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            color: #e5e7eb;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0;
+            outline: none;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+            margin-top: 0.5rem;
+            color: #9ca3af;
+            opacity: 0;
+        }
+        .faq-answer.show {
+            max-height: 500px;
+            opacity: 1;
+        }
+        .support-steps {
+            text-align: center;
+        }
+        .support-steps h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #e5e7eb;
+        }
+        .support-steps ol {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+        }
+        .support-steps li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .support-steps li.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5rem;
+            height: 1.5rem;
+            background-color: #374151;
+            border-radius: 9999px;
+            margin-right: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: bold;
+        }
+        .note {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            font-style: italic;
+            text-align: center;
+            margin-top: 1rem;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .note.show {
+            opacity: 1;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .popup {
+            background-color: #2C2C2C;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 90%;
+            width: 400px;
+            position: relative;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .popup.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .popup-close {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #9ca3af;
+            transition: color 0.3s;
+        }
+        .popup-close:hover {
+            color: #e5e7eb;
+        }
+        .popup-content {
+            text-align: center;
+        }
+        .popup-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .popup-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #e5e7eb;
+        }
+        .popup-url {
+            font-size: 1rem;
+            color: #9ca3af;
+            word-break: break-all;
+            margin-bottom: 1rem;
+        }
+        .popup-button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .popup-button:hover {
+            background-color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="notification-popup">
+        <i class="fas fa-check-circle"></i>
+        <span class="message">Link copied to clipboard!</span>
+    </div>
+
+    <div class="container">
+        <div class="help-center">
+            <h1>Help Center</h1>
+            <div class="contact-methods">
+                <div class="contact-button" data-url="https://discord.com/users/1225463111000260618" data-icon="discord">
+                    <i class="fab fa-discord" style="color: #7289DA;"></i>
+                </div>
+                <div class="contact-button" data-url="https://t.me/idkconsole" data-icon="telegram-plane">
+                    <i class="fab fa-telegram-plane" style="color: #0088cc;"></i>
+                </div>
+                <div class="contact-button" data-url="idkconsole@proton.me" data-icon="envelope">
+                    <i class="fas fa-envelope" style="color: #D44638;"></i>
+                </div>
+                <div class="contact-button" data-url="https://github.com/idkconsole" data-icon="github">
+                    <i class="fab fa-github" style="color: #333;"></i>
+                </div>
+                <div class="contact-button" data-url="https://instagram.com/idkconsole" data-icon="instagram">
+                    <i class="fab fa-instagram" style="color: #E1306C;"></i>
+                </div>
+                <div class="contact-button" data-url="https://www.youtube.com/@idkconsole" data-icon="youtube">
+                    <i class="fab fa-youtube" style="color: #FF0000;"></i>
+                </div>
+                <div class="contact-button" data-url="Not Available" data-icon="twitter">
+                    <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
+                </div>
+            </div>
+            <div class="faq-section">
+                <h2>Frequently Asked Questions</h2>
+                <div class="search-container">
+                    <input type="text" id="faq-search" class="search-input" placeholder="Search FAQ...">
+                    <i class="fas fa-search search-icon"></i>
+                    <button id="clear-search" class="clear-search" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="faq-list"></div>
+            </div>
+            <div class="support-steps">
+                <h2>How to get support:</h2>
+                <ol>
+                    <li><span class="step-number">1</span>Choose your preferred contact method from the icons above.</li>
+                    <li><span class="step-number">2</span>Click on the icon to view the contact information.</li>
+                    <li><span class="step-number">3</span>Use the provided link to reach out with your question or issue.</li>
+                    <li><span class="step-number">4</span>Our support team will get back to you as soon as possible.</li>
+                </ol>
+                <p class="note">Note: Response times may vary depending on the platform and current support volume.</p>
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay">
+        <div class="popup">
+            <span class="popup-close">&times;</span>
+            <div class="popup-content">
+                <div class="popup-icon">
+                    <i class="fab fa-discord"></i>
+                </div>
+                <h2 class="popup-title">Contact Us</h2>
+                <p class="popup-url"></p>
+                <button class="popup-button">Copy Link</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const faqData = [
+            { question: "What are your business hours?", answer: "Our support team is available 24/7 to assist you with any queries or issues you may have." },
+            { question: "How long does it take to get a response?", answer: "We aim to respond to all inquiries within 24 hours." },
+            { question: "Do you offer refunds?", answer: "There are no refunds available for our tools. By using this tool, you agree to our Terms of Service." },
+            { question: "What if the tool gets patched?", answer: "We will make our best effort to keep the tool functional and working. However, if after all our attempts the tool remains non-functional, we will discontinue support for it." },
+            { question: "What if my Telegram accounts get terminated?", answer: "We are not responsible for any account terminations. You are using the tool at your own risk. Please note that these activities are not directly suggested or allowed by Telegram." },
+        ];
+
+        function createFAQItem(question, answer) {
+            const item = document.createElement('div');
+            item.className = 'faq-item';
+            item.innerHTML = `
+                <button class="faq-question">
+                    ${question}
+                    <span class="toggle">▼</span>
+                </button>
+                <div class="faq-answer">${answer}</div>
+            `;
+            item.querySelector('.faq-question').addEventListener('click', () => {
+                const answerElement = item.querySelector('.faq-answer');
+                const isExpanded = answerElement.classList.contains('show');
+                answerElement.style.maxHeight = isExpanded ? '0px' : answerElement.scrollHeight + 'px';
+                answerElement.classList.toggle('show');
+                item.querySelector('.toggle').textContent = isExpanded ? '▼' : '▲';
+            });
+            return item;
+        }
+
+        function renderFAQItems(items) {
+            const faqList = document.getElementById('faq-list');
+            faqList.innerHTML = '';
+            items.forEach(item => {
+                faqList.appendChild(createFAQItem(item.question, item.answer));
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFAQItems(faqData);
+
+            const searchInput = document.getElementById('faq-search');
+            const clearSearch = document.getElementById('clear-search');
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredFAQ = faqData.filter(item =>
+                    item.question.toLowerCase().includes(searchTerm) ||
+                    item.answer.toLowerCase().includes(searchTerm)
+                );
+                renderFAQItems(filteredFAQ);
+                clearSearch.style.display = searchTerm ? 'block' : 'none';
+            });
+
+            clearSearch.addEventListener('click', () => {
+                searchInput.value = '';
+                renderFAQItems(faqData);
+                clearSearch.style.display = 'none';
+            });
+
+            setTimeout(() => {
+                document.querySelector('.help-center').classList.add('show');
+            }, 100);
+
+            const steps = document.querySelectorAll('.support-steps li');
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    step.classList.add('show');
+                }, 1000 + index * 100);
+            });
+
+            setTimeout(() => {
+                document.querySelector('.note').classList.add('show');
+            }, 1400);
+
+            const popupOverlay = document.querySelector('.popup-overlay');
+            const popup = document.querySelector('.popup');
+            const popupClose = document.querySelector('.popup-close');
+            const popupIcon = document.querySelector('.popup-icon i');
+            const popupUrl = document.querySelector('.popup-url');
+            const popupButton = document.querySelector('.popup-button');
+            const notificationPopup = document.querySelector('.notification-popup');
+
+            document.querySelectorAll('.contact-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const url = this.getAttribute('data-url');
+                    const icon = this.getAttribute('data-icon');
+                    popupIcon.className = `fab fa-${icon}`;
+                    popupUrl.textContent = url;
+                    popupOverlay.style.display = 'flex';
+                    setTimeout(() => popup.classList.add('show'), 10);
+                });
+            });
+
+            popupClose.addEventListener('click', closePopup);
+            popupOverlay.addEventListener('click', (e) => {
+                if (e.target === popupOverlay) closePopup();
+            });
+
+            function showNotification() {
+                notificationPopup.classList.add('show');
+                setTimeout(() => {
+                    notificationPopup.classList.remove('show');
+                }, 3000);
+            }
+
+            popupButton.addEventListener('click', () => {
+                const url = popupUrl.textContent;
+                copyToClipboard(url);
+            });
+
+            function copyToClipboard(text) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                    document.execCommand('copy');
+                    showNotification();
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                }
+
+                document.body.removeChild(textArea);
+                closePopup();
+            }
+
+            function closePopup() {
+                popup.classList.remove('show');
+                setTimeout(() => popupOverlay.style.display = 'none', 300);
+            }
+
+            document.addEventListener('wheel', function(e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('touchmove', function(e) {
+                if (e.scale !== 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        });
+    </script>
+</body>
+</html>

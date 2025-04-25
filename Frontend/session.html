@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session File Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            zoom: 1;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: #18181b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+
+        .file-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 16px;
+            background-color: #27272a;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6366f1;
+        }
+
+        .stat-label {
+            color: #a1a1aa;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        .button {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+
+        .button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .button.save {
+            background-color: #10b981;
+            color: #fff;
+        }
+
+        .button.save:hover:not(:disabled) {
+            background-color: #059669;
+        }
+
+        .button.reset {
+            background-color: #3f3f46;
+            color: #fff;
+        }
+
+        .button.reset:hover:not(:disabled) {
+            background-color: #52525b;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 48px 0;
+            padding: 0 64px;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: #27272a;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .file-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .file-meta {
+            font-size: 0.8em;
+            color: #a1a1aa;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 32px;
+            background: linear-gradient(145deg, #18181b, #1f1f23);
+            color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+            min-width: 300px;
+            text-align: center;
+            font-weight: 500;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #18181b;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #3f3f46;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .modal-content h2 {
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            color: #a1a1aa;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%); }
+            to { transform: translate(-50%, 0); }
+        }
+
+        #dragDropArea {
+            border: 2px dashed #3f3f46;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        #dragDropArea.dragover {
+            border-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="sessionFileManager" class="card">
+            <h2 class="card-title">Session File Manager</h2>
+            
+            <div class="file-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalFiles">0</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSize">0</div>
+                    <div class="stat-label">Total Size (KB)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="lastModified">-</div>
+                    <div class="stat-label">Last Modified</div>
+                </div>
+            </div>
+
+            <div id="dragDropArea">
+                Drag and drop files here or
+                <div class="input-group">
+                    <input type="file" id="folderUpload" webkitdirectory directory multiple style="display:none;">
+                    <button class="button save" id="uploadBtn">Choose Files</button>
+                </div>
+            </div>
+
+            <div id="fileList" class="file-list"></div>
+        </div>
+
+        <div class="button-group">
+            <button id="saveBtn" class="button save">Save Changes</button>
+            <button id="resetBtn" class="button reset">Reset Changes</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="resetConfirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Warning</h2>
+            <p>Are you sure you want to reset all changes? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="confirmReset" class="button reset">Yes, Reset</button>
+                <button id="cancelReset" class="button save">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        let bridge;
+        let sessionFiles = [];
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.backgroundColor = type === 'success' ? '#6366f1' : '#ef4444';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function initBridge() {
+            return new Promise((resolve) => {
+                new QWebChannel(qt.webChannelTransport, function (channel) {
+                    bridge = channel.objects.bridge;
+                    resolve();
+                });
+            });
+        }
+
+        async function init() {
+            await initBridge();
+            await loadSavedSessions();
+        }
+
+        async function loadSavedSessions() {
+            try {
+                const savedSessionsJson = await bridge.load_sessions();
+                const savedSessions = JSON.parse(savedSessionsJson);
+                sessionFiles = savedSessions;
+                updateFileList();
+            } catch (error) {
+                console.error('Error loading saved sessions:', error);
+            }
+        }
+
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    resolve(event.target.result);
+                };
+                reader.onerror = (error) => {
+                    reject(error);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleFiles(files) {
+            let sessionFileCount = 0;
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].name.endsWith('.session')) {
+                    try {
+                        const content = await readFileContent(files[i]);
+                        sessionFiles.push({
+                            name: files[i].name,
+                            size: files[i].size,
+                            lastModified: files[i].lastModified,
+                            content: content
+                        });
+                        sessionFileCount++;
+                    } catch (error) {
+                        console.error('Error reading file:', error);
+                        showToast(`Error reading file ${files[i].name}`, 'error');
+                    }
+                }
+            }
+            
+            if (sessionFileCount > 0) {
+                updateFileList();
+                showToast(`${sessionFileCount} session files uploaded successfully`);
+            } else {
+                showToast('No valid session files found', 'error');
+            }
+        }
+
+        function updateStats() {
+            const totalFiles = sessionFiles.length;
+            const totalSize = sessionFiles.reduce((acc, file) => acc + file.size, 0) / 1024;
+            const lastModified = sessionFiles.length > 0 
+                ? new Date(Math.max(...sessionFiles.map(f => f.lastModified))).toLocaleDateString()
+                : '-';
+            
+            document.getElementById('totalFiles').textContent = totalFiles;
+            document.getElementById('totalSize').textContent = totalSize.toFixed(2);
+            document.getElementById('lastModified').textContent = lastModified;
+        }
+
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            sessionFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-meta">Size: ${(file.size / 1024).toFixed(2)} KB | Last Modified: ${new Date(file.lastModified).toLocaleString()}</span>
+                    </div>
+                    <div class="file-actions">
+                        <button class="button reset" onclick="deleteFile(${index})">Delete</button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+            updateStats();
+        }
+
+        async function deleteFile(index) {
+            const file = sessionFiles[index];
+            if (await bridge.delete_file(file.name)) {
+                sessionFiles.splice(index, 1);
+                updateFileList();
+                showToast('File deleted successfully');
+            } else {
+                showToast('Error deleting file', 'error');
+            }
+        }
+
+        async function saveChanges() {
+            try {
+                const success = await bridge.save_changes(JSON.stringify(sessionFiles));
+                if (success) {
+                    showToast('Changes saved successfully');
+                } else {
+                    showToast('Error saving changes', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                showToast('Error saving changes', 'error');
+            }
+        }
+
+        function showResetWarning() {
+            document.getElementById('resetConfirmModal').style.display = 'block';
+        }
+
+        function confirmReset() {
+            document.getElementById('resetConfirmModal').style.display = 'none';
+            sessionFiles = [];
+            updateFileList();
+            showToast('All files have been reset');
+        }
+
+        function cancelReset() {
+            document.getElementById('resetConfirmModal').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+
+            const dragDropArea = document.getElementById('dragDropArea');
+            const folderUpload = document.getElementById('folderUpload');
+            const uploadBtn = document.getElementById('uploadBtn');
+
+            dragDropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dragDropArea.classList.add('dragover');
+            });
+
+            dragDropArea.addEventListener('dragleave', () => {
+                dragDropArea.classList.remove('dragover');
+            });
+
+            dragDropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dragDropArea.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            uploadBtn.addEventListener('click', () => {
+                folderUpload.click();
+            });
+
+            folderUpload.addEventListener('change', (event) => {
+                handleFiles(event.target.files);
+            });
+
+            document.getElementById('saveBtn').addEventListener('click', saveChanges);
+            document.getElementById('resetBtn').addEventListener('click', showResetWarning);
+            document.getElementById('confirmReset').addEventListener('click', confirmReset);
+            document.getElementById('cancelReset').addEventListener('click', cancelReset);
+        });
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>

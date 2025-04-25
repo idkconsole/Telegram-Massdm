@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            background-color: #000;
+            color: #fff;
+            padding: 20px;
+            zoom: 1.1;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .account-selector {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .account-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a1a1aa;
+            font-size: 14px;
+        }
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .select-header {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #111;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .select-header:hover {
+            background-color: #222;
+            border-color: #444;
+        }
+        .select-options {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+        .select-option {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .select-option:hover {
+            background-color: #2a2a2a;
+        }
+        .select-option.selected {
+            background-color: #3a3a3a;
+        }
+        .card {
+            background-color: #18181b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+        .input-group, .switch-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a1a1aa;
+        }
+        .input {
+            width: 100%;
+            padding: 12px;
+            background-color: #27272a;
+            border: 1px solid #3f3f46;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .input:focus {
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ef4444;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #6366f1;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            margin: 48px 0;
+            padding: 0 64px;
+        }
+        .button {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        .button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .button.save {
+            background-color: #10b981;
+            color: #fff;
+        }
+        .button.save:hover:not(:disabled) {
+            background-color: #059669;
+        }
+        .button.reset {
+            background-color: #3f3f46;
+            color: #fff;
+        }
+        .button.reset:hover:not(:disabled) {
+            background-color: #52525b;
+        }
+        .button.add {
+            background-color: #10b981;
+            color: #fff;
+        }
+        .button.add:hover:not(:disabled) {
+            background-color: #059669;
+        }
+        .button.delete {
+            background-color: #ef4444;
+            color: #fff;
+        }
+        .button.delete:hover:not(:disabled) {
+            background-color: #dc2626;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #1f1f23, #18181b);
+            margin: 10% auto;
+            padding: 32px;
+            border: 1px solid #3f3f46;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.3s ease;
+        }
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #fff;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        .modal-text {
+            color: #a1a1aa;
+            margin-bottom: 28px;
+            line-height: 1.6;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 32px;
+        }
+        .modal-button {
+            padding: 14px 36px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            min-width: 140px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .modal-button.cancel {
+            background: linear-gradient(to right, #3f3f46, #52525b);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .modal-button.cancel:hover {
+            background: linear-gradient(to right, #52525b, #71717a);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .modal-button.confirm {
+            background: linear-gradient(to right, #4f46e5, #6366f1);
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .modal-button.confirm:hover {
+            background: linear-gradient(to right, #6366f1, #818cf8);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .account-list {
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .account-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .account-list::-webkit-scrollbar-track {
+            background: #27272a;
+            border-radius: 4px;
+        }
+        .account-list::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 4px;
+        }
+        .account-list::-webkit-scrollbar-thumb:hover {
+            background: #52525b;
+        }
+        .account-item {
+            padding: 16px 20px;
+            margin: 12px 0;
+            background: linear-gradient(145deg, #27272a, #2d2d30);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .account-item:hover {
+            background: linear-gradient(145deg, #2d2d30, #323236);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid #4f46e5;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            background: #18181b;
+        }
+        .checkbox.checked {
+            background: linear-gradient(145deg, #4f46e5, #6366f1);
+            border-color: transparent;
+        }
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .delete-selected {
+            margin: 24px 0 16px;
+            padding: 16px;
+            background: linear-gradient(to right, #dc2626, #ef4444);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+        }
+        .delete-selected:hover:not(:disabled) {
+            background: linear-gradient(to right, #ef4444, #f87171);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4);
+        }
+        .delete-selected:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 32px;
+            background: linear-gradient(145deg, #18181b, #1f1f23);
+            color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+            min-width: 300px;
+            text-align: center;
+            font-weight: 500;
+            animation: slideUp 0.3s ease;
+        }
+        .account-item {
+            padding: 12px;
+            margin: 8px 0;
+            background-color: #27272a;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .account-item:hover:not(.disabled) {
+            background-color: #3f3f46;
+        }
+        .account-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #666;
+            border-radius: 4px;
+            display: inline-block;
+            position: relative;
+        }
+        .checkbox.checked {
+            background-color: #6366f1;
+            border-color: #6366f1;
+        }
+        .checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 24px;
+            background-color: #18181b;
+            color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+            animation: slideUp 0.3s ease;
+            z-index: 1000;
+            min-width: 300px;
+            text-align: center;
+        }
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .input {
+            width: 100%;
+            padding: 12px;
+            padding-right: 40px; 
+            background-color: #27272a;
+            border: 1px solid #3f3f46;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .eye-button {
+            position: absolute;
+            right: 10px;
+            bottom: 8px; 
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #a1a1aa;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+            z-index: 10;
+        }
+        .eye-button:hover {
+            color: #d4d4d8;
+        }
+        .eye-button svg {
+            width: 20px;
+            height: 20px;
+            pointer-events: none; 
+        }
+        .delete-selected {
+            margin-top: 16px;
+            padding: 12px;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .delete-selected:hover:not(:disabled) {
+            background-color: #dc2626;
+        }
+        .delete-selected:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%); }
+            to { transform: translate(-50%, 0); }
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="account-selector">
+            <label for="accountSelect">Select Account:</label>
+            <div class="select-wrapper">
+                <div id="customSelect" class="select-header">
+                    <span class="selected-text">Account 1</span>
+                    <span class="select-arrow">▼</span>
+                </div>
+                <div class="select-options">
+                </div>
+            </div>
+        </div>
+
+        <div id="accountSettings" class="card">
+            <h2 class="card-title">Account Configuration</h2>
+            <div class="input-group">
+                <label for="api_id">API ID</label>
+                <input type="password" id="api_id" class="input" placeholder="Enter your API ID">
+                <button type="button" class="eye-button" data-target="api_id">
+                    <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="api_hash">API Hash</label>
+                <input type="password" id="api_hash" class="input" placeholder="Enter your API Hash">
+                <button type="button" class="eye-button" data-target="api_hash">
+                    <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="phone_number">Phone Number</label>
+                <input type="password" id="phone_number" class="input" placeholder="Enter phone number">
+                <button type="button" class="eye-button" data-target="phone_number">
+                    <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="input" placeholder="Enter password">
+                <button type="button" class="eye-button" data-target="password">
+                    <svg class="eye-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg class="eye-closed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                        <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="saveBtn" class="button save">Save Changes</button>
+            <button id="resetBtn" class="button reset">Reset Changes</button>
+            <button id="addAccountBtn" class="button add">Add Account</button>
+            <button id="deleteAccountBtn" class="button delete">Delete Account</button>
+        </div>
+    </div>
+
+    <div id="resetConfirmModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Reset Changes</h2>
+            <p class="modal-text">Are you sure you want to reset all changes? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="cancelReset" class="modal-button cancel">Cancel</button>
+                <button id="confirmReset" class="modal-button confirm">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteAccountModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Select Accounts to Delete</h2>
+            <div class="account-list" id="accountList">
+            </div>
+            <button id="deleteSelectedAccounts" class="delete-selected" disabled>Delete Selected Accounts</button>
+            <div class="modal-buttons">
+                <button id="cancelDeleteAccount" class="modal-button cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        let bridge;
+        let accounts = [];
+        let currentAccountIndex = 0;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.backgroundColor = type === 'success' ? '#6366f1' : '#ef4444';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        document.querySelectorAll('.eye-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault(); 
+                const targetId = this.getAttribute('data-target');
+                togglePasswordVisibility(targetId);
+            });
+        });
+
+        function togglePasswordVisibility(targetId) {
+            const input = document.getElementById(targetId);
+            const button = document.querySelector(`button[data-target="${targetId}"]`);
+            const eyeOpen = button.querySelector('.eye-open');
+            const eyeClosed = button.querySelector('.eye-closed');
+            
+            if (input.type === "password") {
+                input.type = "text";
+                eyeOpen.style.display = "none";
+                eyeClosed.style.display = "block";
+            } else {
+                input.type = "password";
+                eyeOpen.style.display = "block";
+                eyeClosed.style.display = "none";
+            }
+        }
+        function initBridge() {
+            return new Promise((resolve) => {
+                new QWebChannel(qt.webChannelTransport, function (channel) {
+                    bridge = channel.objects.bridge;
+                    resolve();
+                });
+            });
+        }
+
+        async function init() {
+            await initBridge();
+            loadData();
+            initializeCustomSelect();
+        }
+
+        function loadData() {
+            showLoading();
+            bridge.loadData().then(result => {
+                const data = JSON.parse(result);
+                accounts = data.accounts || [];
+                if (accounts.length === 0) {
+                    accounts = [{"name": "Account 1", ...getDefaultAccountData()}];
+                }
+                currentAccountIndex = 0;
+                updateCustomSelect();
+                loadAccountData(currentAccountIndex);
+                hideLoading();
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                showToast('Error loading account data', 'error');
+                hideLoading();
+            });
+        }
+
+        function initializeCustomSelect() {
+            const select = document.querySelector('.select-header');
+            const options = document.querySelector('.select-options');
+            
+            select.addEventListener('click', () => {
+                options.style.display = options.style.display === 'none' ? 'block' : 'none';
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!select.contains(e.target) && !options.contains(e.target)) {
+                    options.style.display = 'none';
+                }
+            });
+        }
+
+        function updateCustomSelect() {
+            const optionsContainer = document.querySelector('.select-options');
+            const selectedText = document.querySelector('.selected-text');
+            optionsContainer.innerHTML = '';
+            
+            accounts.forEach((account, index) => {
+                const option = document.createElement('div');
+                option.className = 'select-option';
+                if (index === currentAccountIndex) {
+                    option.classList.add('selected');
+                    selectedText.textContent = account.name;
+                }
+                option.textContent = account.name;
+                option.onclick = () => {
+                    showLoading();
+                    setTimeout(() => {
+                        currentAccountIndex = index;
+                        selectedText.textContent = account.name;
+                        loadAccountData(index);
+                        optionsContainer.style.display = 'none';
+                        document.querySelectorAll('.select-option').forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        hideLoading();
+                    }, 1000); 
+                };
+                optionsContainer.appendChild(option);
+            });
+        }
+
+        function loadAccountData(index) {
+            const account = accounts[index];
+            Object.entries(account).forEach(([key, value]) => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        element.checked = value;
+                    } else {
+                        element.value = value;
+                    }
+                }
+            });
+            updateButtonState();
+        }
+
+        function saveChanges() {
+            const account = {};
+            document.querySelectorAll('input').forEach(input => {
+                if (input.type === 'checkbox') {
+                    account[input.id] = input.checked;
+                } else if (input.type === 'number') {
+                    account[input.id] = parseInt(input.value) || 0;
+                } else {
+                    account[input.id] = input.value;
+                }
+            });
+            accounts[currentAccountIndex] = {...accounts[currentAccountIndex], ...account};
+
+            bridge.saveChanges(JSON.stringify(accounts)).then(result => {
+                const response = JSON.parse(result);
+                showToast(response.message, response.success ? 'success' : 'error');
+                updateButtonState();
+            });
+        }
+
+        function resetChanges() {
+            bridge.resetChanges(accounts[currentAccountIndex].name).then(result => {
+                const response = JSON.parse(result);
+                if (response.success) {
+                    loadData();
+                    hideResetConfirmModal();
+                    showToast('Account reset successfully', 'success');
+                } else {
+                    showToast(response.message, 'error');
+                }
+            });
+        }
+
+        function showDeleteAccountModal() {
+            const modal = document.getElementById('deleteAccountModal');
+            const accountList = document.getElementById('accountList');
+            const deleteButton = document.getElementById('deleteSelectedAccounts');
+            accountList.innerHTML = '';
+            
+            const selectedAccounts = new Set();
+            
+            accounts.forEach((account) => {
+                if (account.name === 'Account 1') return;
+                
+                const accountItem = document.createElement('div');
+                accountItem.className = 'account-item';
+                
+                const checkbox = document.createElement('span');
+                checkbox.className = 'checkbox';
+                
+                const text = document.createElement('span');
+                text.textContent = account.name;
+                
+                accountItem.appendChild(checkbox);
+                accountItem.appendChild(text);
+                
+                accountItem.addEventListener('click', () => {
+                    const isSelected = checkbox.classList.toggle('checked');
+                    if (isSelected) {
+                        selectedAccounts.add(account.name);
+                    } else {
+                        selectedAccounts.delete(account.name);
+                    }
+                    deleteButton.disabled = selectedAccounts.size === 0;
+                });
+                
+                accountList.appendChild(accountItem);
+            });
+            
+            deleteButton.onclick = () => {
+                deleteSelectedAccounts(Array.from(selectedAccounts));
+            };
+            
+            modal.style.display = 'block';
+        }
+
+        function deleteSelectedAccounts(accountNames) {
+            Promise.all(accountNames.map(name => bridge.deleteAccount(name)))
+            .then(results => {
+                const successCount = results.filter(result => 
+                    JSON.parse(result).success
+                ).length;
+                
+                hideDeleteAccountModal();
+                showToast(`Successfully deleted ${successCount} account(s)`);
+                currentAccountIndex = 0; 
+                loadData();
+            })
+            .catch(error => {
+                console.error('Error deleting accounts:', error);
+                showToast('Error deleting accounts', 'error');
+            });
+        }
+
+        function hideDeleteAccountModal() {
+            document.getElementById('deleteAccountModal').style.display = 'none';
+        }
+
+        function showResetConfirmModal() {
+            document.getElementById('resetConfirmModal').style.display = 'block';
+        }
+
+        function hideResetConfirmModal() {
+            document.getElementById('resetConfirmModal').style.display = 'none';
+        }
+
+        function updateButtonState() {
+            const saveBtn = document.getElementById('saveBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+            
+            const isAccount1 = accounts[currentAccountIndex].name === 'Account 1';
+            
+            saveBtn.disabled = false;
+            resetBtn.disabled = false;
+            deleteAccountBtn.disabled = isAccount1;
+            
+            deleteAccountBtn.style.opacity = isAccount1 ? '0.5' : '1';
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', saveChanges);
+        document.getElementById('resetBtn').addEventListener('click', showResetConfirmModal);
+        document.getElementById('addAccountBtn').addEventListener('click', addAccount);
+        document.getElementById('deleteAccountBtn').addEventListener('click', showDeleteAccountModal);
+        document.getElementById('confirmReset').addEventListener('click', resetChanges);
+        document.getElementById('cancelReset').addEventListener('click', hideResetConfirmModal);
+        document.getElementById('cancelDeleteAccount').addEventListener('click', hideDeleteAccountModal);
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function addAccount() {
+            showLoading();
+            setTimeout(() => {
+                bridge.addAccount().then(result => {
+                    const response = JSON.parse(result);
+                    if (response.success) {
+                        loadData();
+                        showToast(response.message, 'success');
+                    } else {
+                        showToast(response.message, 'error');
+                    }
+                    hideLoading();
+                });
+            }, Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000); 
+        }
+
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>

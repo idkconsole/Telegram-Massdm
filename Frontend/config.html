@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        body {
+            background-color: #000;
+            color: #fff;
+            padding: 20px;
+            zoom: 1.1;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #18181b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+        }
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #fff;
+        }
+        .input-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a1a1aa;
+        }
+        .input {
+            width: 100%;
+            padding: 12px;
+            background-color: #27272a;
+            border: 1px solid #3f3f46;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            padding-right: 40px;
+        }
+        .input:focus {
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 48px 0;
+            padding: 0 64px;
+        }
+        .button {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 160px;
+        }
+        .button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .button.save {
+            background-color: #10b981;
+            color: #fff;
+        }
+        .button.save:hover:not(:disabled) {
+            background-color: #059669;
+        }
+        .button.reset {
+            background-color: #3f3f46;
+            color: #fff;
+        }
+        .button.reset:hover:not(:disabled) {
+            background-color: #52525b;
+        }
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 32px;
+            background: linear-gradient(145deg, #18181b, #1f1f23);
+            color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+            min-width: 300px;
+            text-align: center;
+            font-weight: 500;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translate(-50%, 100%); }
+            to { transform: translate(-50%, 0); }
+        }
+        .switch-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+            margin-left: auto;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ef4444;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #6366f1;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        .toggle-visibility {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: #a1a1aa;
+            display: flex;
+            align-items: center;
+        }
+        .toggle-visibility:hover {
+            color: #fff;
+        }
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 1000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+          background-color: #18181b;
+          margin: 15% auto;
+          padding: 20px;
+          border: 1px solid #3f3f46;
+          border-radius: 12px;
+          width: 80%;
+          max-width: 500px;
+        }
+        .modal-content h2 {
+          color: #fff;
+          margin-bottom: 15px;
+        }
+        .modal-content p {
+          color: #a1a1aa;
+          margin-bottom: 20px;
+        }
+        .modal-buttons {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="mainConfiguration" class="card">
+            <h2 class="card-title">Main Configuration</h2>
+            <div class="input-group">
+                <label for="api_id">API ID</label>
+                <input type="password" id="api_id" class="input" placeholder="Enter your API ID">
+                <button type="button" class="toggle-visibility" onclick="toggleVisibility('api_id')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="api_hash">API Hash</label>
+                <input type="password" id="api_hash" class="input" placeholder="Enter your API Hash">
+                <button type="button" class="toggle-visibility" onclick="toggleVisibility('api_hash')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="phone_number">Phone Number</label>
+                <input type="password" id="phone_number" class="input" placeholder="Enter your phone number">
+                <button type="button" class="toggle-visibility" onclick="toggleVisibility('phone_number')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="input" placeholder="Enter your password">
+                <button type="button" class="toggle-visibility" onclick="toggleVisibility('password')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="group_url">Group URL</label>
+                <input type="password" id="group_url" class="input" placeholder="Enter group URL">
+                <button type="button" class="toggle-visibility" onclick="toggleVisibility('group_url')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="message_url">Message URL</label>
+                <input type="password" id="message_url" class="input" placeholder="Enter message URL">
+                <button type="button" class="toggle-visibility" onclick="toggleVisibility('message_url')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="input-group">
+                <label for="messages_per_session">Messages Per Session</label>
+                <input type="number" id="messages_per_session" class="input" placeholder="Enter messages per session">
+            </div>
+            <div class="input-group">
+                <label for="delay_between_messages">Delay Between Messages (seconds)</label>
+                <input type="number" id="delay_between_messages" class="input" placeholder="Enter delay in seconds">
+            </div>
+            <div class="switch-group">
+                <label for="send_image">Send Image</label>
+                <label class="switch">
+                    <input type="checkbox" id="send_image">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="switch-group">
+                <label for="discord_logging">Discord Logging</label>
+                <label class="switch">
+                    <input type="checkbox" id="discord_logging">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="input-group">
+                <label for="discord_webhook_url">Discord Webhook URL</label>
+                <input type="password" id="discord_webhook_url" class="input" placeholder="Enter Discord Webhook URL">
+                <button type="button" class="toggle-visibility" onclick="toggleVisibility('discord_webhook_url')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="saveBtn" class="button save">Save Changes</button>
+            <button id="resetBtn" class="button reset">Reset Changes</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="resetConfirmModal" class="modal">
+      <div class="modal-content">
+        <h2>Warning</h2>
+        <p>Are you sure you want to reset all changes? This action cannot be undone.</p>
+        <div class="modal-buttons">
+          <button id="confirmReset" class="button reset">Yes, Reset</button>
+          <button id="cancelReset" class="button save">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
+    <script>
+        let bridge;
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.backgroundColor = type === 'success' ? '#6366f1' : '#ef4444';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function toggleVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const type = input.type === 'password' ? 'text' : 'password';
+            input.type = type;
+            
+            const button = input.nextElementSibling;
+            const svg = button.querySelector('svg');
+            if (type === 'text') {
+                svg.innerHTML = `
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                `;
+            } else {
+                svg.innerHTML = `
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-7-10-7a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                `;
+            }
+        }
+
+        function initBridge() {
+            return new Promise((resolve) => {
+                new QWebChannel(qt.webChannelTransport, function (channel) {
+                    bridge = channel.objects.bridge;
+                    resolve();
+                });
+            });
+        }
+
+        async function init() {
+            await initBridge();
+            loadData();
+        }
+
+        function loadData() {
+            bridge.loadData().then(result => {
+                const data = JSON.parse(result);
+                populateForm(data);
+            })
+            .catch(error => {
+                console.error('Error loading data:', error);
+                showToast('Error loading configuration data', 'error');
+            });
+        }
+
+        function populateForm(data) {
+            document.getElementById('api_id').value = data.api_id || '';
+            document.getElementById('api_hash').value = data.api_hash || '';
+            document.getElementById('phone_number').value = data.phone_number || '';
+            document.getElementById('password').value = data.password || '';
+            document.getElementById('group_url').value = data.group_url || '';
+            document.getElementById('message_url').value = data.message_url || '';
+            document.getElementById('messages_per_session').value = data.messages_per_session || '';
+            document.getElementById('delay_between_messages').value = data.delay_between_messages || '';
+            document.getElementById('send_image').checked = data.send_image || false;
+            document.getElementById('discord_logging').checked = data.discord_logging || false;
+            document.getElementById('discord_webhook_url').value = data.discord_webhook_url || '';
+        }
+
+        function saveChanges() {
+            const data = {
+                api_id: document.getElementById('api_id').value,
+                api_hash: document.getElementById('api_hash').value,
+                phone_number: document.getElementById('phone_number').value,
+                password: document.getElementById('password').value,
+                group_url: document.getElementById('group_url').value,
+                message_url: document.getElementById('message_url').value,
+                messages_per_session: parseInt(document.getElementById('messages_per_session').value),
+                delay_between_messages: parseInt(document.getElementById('delay_between_messages').value),
+                send_image: document.getElementById('send_image').checked,
+                discord_logging: document.getElementById('discord_logging').checked,
+                discord_webhook_url: document.getElementById('discord_webhook_url').value
+            };
+
+            bridge.saveChanges(JSON.stringify(data)).then(result => {
+                const response = JSON.parse(result);
+                showToast(response.message, response.success ? 'success' : 'error');
+            });
+        }
+
+        function showResetWarning() {
+          document.getElementById('resetConfirmModal').style.display = 'block';
+        }
+
+        function confirmReset() {
+            document.getElementById('resetConfirmModal').style.display = 'none';
+            bridge.resetChanges().then(result => {
+                const response = JSON.parse(result);
+                if (response.success) {
+                    loadData();
+                    showToast('Configuration reset successfully', 'success');
+                } else {
+                    showToast(response.message, 'error');
+                }
+            });
+        }
+
+        function cancelReset() {
+            document.getElementById('resetConfirmModal').style.display = 'none';
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', saveChanges);
+        document.getElementById('resetBtn').addEventListener('click', showResetWarning);
+        document.getElementById('confirmReset').addEventListener('click', confirmReset);
+        document.getElementById('cancelReset').addEventListener('click', cancelReset);
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === '+' || e.key === '-' || e.key === '=')) {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (e.scale !== 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
+
